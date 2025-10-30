@@ -4,12 +4,13 @@
 //
 //  Created by Vedant Rewadkar on 17/10/25.
 //
+
 import Foundation
 import FirebaseFirestore
 
 class LoginViewModel {
     
-    var emailOrPhone: String = ""
+    var emailOrPhoneOrUsername: String = ""
     var password: String = ""
     
     // Closures for binding
@@ -19,15 +20,16 @@ class LoginViewModel {
     private let db = Firestore.firestore()
     
     func login() {
-        // Check if input is empty
-        guard !emailOrPhone.isEmpty, !password.isEmpty else {
-            onLoginFailure?("Please enter email/phone and password")
+        // Validate input
+        guard !emailOrPhoneOrUsername.isEmpty, !password.isEmpty else {
+            onLoginFailure?("Please enter username/email/mobile and password")
             return
         }
         
-        // Fetch data from Firestore
-        let docRef = db.collection("Users").document("registerUser")
-        docRef.getDocument { [weak self] snapshot, error in
+        let usersRef = db.collection("Users")
+        
+        // 1️⃣ Try email first
+        usersRef.whereField("email", isEqualTo: emailOrPhoneOrUsername).getDocuments { [weak self] (emailQuery, error) in
             guard let self = self else { return }
             
             if let error = error {
@@ -35,22 +37,47 @@ class LoginViewModel {
                 return
             }
             
-            guard let data = snapshot?.data() else {
-                self.onLoginFailure?("User not found")
-                return
-            }
-            
-            // Get stored email, mobile, password
-            let storedEmail = data["email"] as? String ?? ""
-            let storedMobile = data["mobile"] as? String ?? ""
-            let storedPassword = data["password"] as? String ?? ""
-            
-            if (self.emailOrPhone == storedEmail || self.emailOrPhone == storedMobile),
-               self.password == storedPassword {
-                self.onLoginSuccess?()
+            if let doc = emailQuery?.documents.first {
+                self.handleLogin(doc: doc)
             } else {
-                self.onLoginFailure?("Invalid credentials")
+                // 2️⃣ Try username
+                usersRef.whereField("userName", isEqualTo: self.emailOrPhoneOrUsername).getDocuments { (usernameQuery, error) in
+                    if let error = error {
+                        self.onLoginFailure?("Firestore error: \(error.localizedDescription)")
+                        return
+                    }
+                    
+                    if let doc = usernameQuery?.documents.first {
+                        self.handleLogin(doc: doc)
+                    } else {
+                        // 3️⃣ Try mobile
+                        usersRef.whereField("mobile", isEqualTo: self.emailOrPhoneOrUsername).getDocuments { (mobileQuery, error) in
+                            if let error = error {
+                                self.onLoginFailure?("Firestore error: \(error.localizedDescription)")
+                                return
+                            }
+                            
+                            if let doc = mobileQuery?.documents.first {
+                                self.handleLogin(doc: doc)
+                            } else {
+                                self.onLoginFailure?("User not found")
+                            }
+                        }
+                    }
+                }
             }
+        }
+    }
+    
+    // MARK: - Handle Login Result
+    private func handleLogin(doc: QueryDocumentSnapshot) {
+        let data = doc.data()
+        let storedPassword = data["password"] as? String ?? ""
+        
+        if storedPassword == password {
+            onLoginSuccess?()
+        } else {
+            onLoginFailure?("Invalid password")
         }
     }
 }
