@@ -28,11 +28,17 @@ class BaseViewController: UIViewController {
         }
     }
 
-    /// ✅ Use this version when you want to pass a `User` manually (from Register screen)
     func navigateToOtpScreen(with user: User) {
         if let vc = storyboard?.instantiateViewController(withIdentifier: "OTPVerificationViewControllerID") as? OTPVerificationViewController {
             vc.user = user
             navigationController?.pushViewController(vc, animated: true)
+        }
+    }
+    
+    func navigateTOResetPasswordScreen(with user: User) {
+        if let vc = storyboard?.instantiateViewController(withIdentifier: "ResetPasswordViewControllerID") as? ResetPasswordViewController {
+            navigationController?.pushViewController(vc, animated: false)
+            vc.user = user
         }
     }
 }

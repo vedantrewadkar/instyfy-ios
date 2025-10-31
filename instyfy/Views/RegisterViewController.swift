@@ -19,7 +19,7 @@ class RegisterViewController: BaseViewController {
     @IBOutlet weak var loginLabel: UILabel!
     
     private let registerVM = RegisterViewModel()
-    private var pendingUser: User?
+    private var user: User?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -37,8 +37,10 @@ class RegisterViewController: BaseViewController {
             guard let self = self else { return }
             if exists {
                 self.showAlert(message: message ?? "User already exists.")
-            } else if let user = self.pendingUser {
-                self.navigateToOtpScreen(with: user)
+            } else  {
+                if let user = self.user {
+                    self.navigateToOtpScreen(with: user)
+                }
             }
         }
     }
@@ -65,13 +67,14 @@ class RegisterViewController: BaseViewController {
             showAlert(message: "Passwords do not match.")
             return
         }
+        
+        user = User(email: email, password: password, username: username, fullName: fullName, mobile: mobile)
+        
+        if let user = user {
+            guard registerVM.validateFields(user: user) else { return }
+            registerVM.checkUserExistence(user: user)
+        }
 
-        let user = User(email: email, password: password, username: username, fullName: fullName, mobile: mobile)
-
-        guard registerVM.validateFields(user: user) else { return }
-
-        pendingUser = user
-        registerVM.checkUserExistence(user: user)
     }
     
     @objc private func navigateToLogin() {

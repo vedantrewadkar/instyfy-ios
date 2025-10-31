@@ -11,6 +11,7 @@ class LoginViewController: BaseViewController {
     @IBOutlet weak var forgotPasswordLabel: UILabel!
     // MARK: - Properties
     private var viewModel = LoginViewModel()
+    private var user : User?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -40,10 +41,7 @@ class LoginViewController: BaseViewController {
     // MARK: - ViewModel Binding
     private func bindViewModel() {
         viewModel.onLoginSuccess = { [weak self] in
-//            DispatchQueue.main.async {
-//              self?.showAlert(title: "Success", message: "Login Successful ✅")
                 self?.navigateToHome()
-//            }
         }
         
         viewModel.onLoginFailure = { [weak self] error in
@@ -57,6 +55,7 @@ class LoginViewController: BaseViewController {
     @IBAction func loginButtonTapped(_ sender: UIButton) {
         viewModel.emailOrPhoneOrUsername = emailTextField.text ?? ""
         viewModel.password = passwordTextField.text ?? ""
+        user = User(email: emailTextField.text ?? "", password: passwordTextField.text ?? "", username: "", fullName: "", mobile: "")
         viewModel.login()
     }
     
@@ -72,10 +71,10 @@ class LoginViewController: BaseViewController {
         alert.addAction(UIAlertAction(title: "OK", style: .default))
         present(alert, animated: true)
     }
-    
-    /// ✅ This version is safe for gestures (no parameters)
+
     @objc func navigateOtpScreen() {
         if let vc = storyboard?.instantiateViewController(withIdentifier: "OTPVerificationViewControllerID") as? OTPVerificationViewController {
+            vc.user = user
             navigationController?.pushViewController(vc, animated: true)
         }
     }

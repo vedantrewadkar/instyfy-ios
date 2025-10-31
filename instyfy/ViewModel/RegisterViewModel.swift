@@ -114,6 +114,7 @@ class RegisterViewModel {
         Auth.auth().createUser(withEmail: user.email, password: user.password) { result, error in
             if let error = error {
                 self.onLoadingStatusChanged?(false)
+                print(error.localizedDescription)
                 self.onRegisterFailure?("Registration failed: \(error.localizedDescription)")
                 return
             }
@@ -123,8 +124,7 @@ class RegisterViewModel {
                 self.onRegisterFailure?("Failed to retrieve user ID.")
                 return
             }
-            
-            // Step 2: Save user details in Firestore (single document per UID)
+
             let db = Firestore.firestore()
             let userData: [String: Any] = [
                 "uid": uid,
@@ -136,7 +136,6 @@ class RegisterViewModel {
                 "createdAt": FieldValue.serverTimestamp()
             ]
             
-            // ✅ Use `setData(merge: true)` to update or create only once
             db.collection("Users").document(uid).setData(userData, merge: true) { error in
                 self.onLoadingStatusChanged?(false)
                 if let error = error {

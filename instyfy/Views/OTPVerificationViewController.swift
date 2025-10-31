@@ -65,17 +65,14 @@ class OTPVerificationViewController: BaseViewController, UITextFieldDelegate {
 
         otpVM.onVerificationSuccess = { [weak self] in
             guard let self = self else { return }
-            DispatchQueue.main.async {
                 guard let user = self.user else {
                     return
                 }
-//                navigae teot create password or register form otp screen
-//                if self.getPreviousController()?.isKind(of: LoginViewController.t) {
-//                    
-//                }else{
-//                    self.registerVM.registerUser(user: user)
-//                }
-            }
+                if self.getPreviousController()?.isKind(of: LoginViewController.self) == true {
+                    self.navigateTOResetPasswordScreen(with: user)
+                } else {
+                    self.registerVM.registerUser(user: user)
+                }
         }
         
         registerVM.onRegisterSuccess = { [weak self] in
@@ -85,12 +82,15 @@ class OTPVerificationViewController: BaseViewController, UITextFieldDelegate {
     }
 
     @IBAction func continueBtnTapped(_ sender: UIButton) {
-        let mobile = user?.mobile ?? mobileNumberTextField.text ?? ""
+        let mobile = mobileNumberTextField.text ?? ""
         otpVM.sendOtp(to: mobile)
     }
 
     @IBAction func confirmBtnTapped(_ sender: UIButton) {
         let otp = [otpField1, otpField2, otpField3, otpField4, otpField5, otpField6].compactMap { $0?.text }.joined()
+        if self.getPreviousController()?.isKind(of: LoginViewController.self) == true {
+            user = User(email: "", password: "", username: "", fullName: "", mobile: mobileNumberTextField.text ?? "")
+        }
         otpVM.verifyOtp(otp)
     }
 
