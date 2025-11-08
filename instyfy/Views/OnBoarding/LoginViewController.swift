@@ -7,8 +7,7 @@ class LoginViewController: BaseViewController {
     @IBOutlet weak var passwordTextField: UITextField!
     @IBOutlet weak var createNewAccountView: UIView!
     @IBOutlet weak var loginBtn: UIButton!
-    
-    @IBOutlet weak var forgotPasswordLabel: UILabel!
+
     // MARK: - Properties
     private var viewModel = LoginViewModel()
     private var user : User?
@@ -23,10 +22,6 @@ class LoginViewController: BaseViewController {
     private func setTapGesture() {
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(navigateToRegisterViewController))
         createNewAccountView.addGestureRecognizer(tapGesture)
-
-        forgotPasswordLabel.isUserInteractionEnabled = true
-        let tapGestureForgotButton = UITapGestureRecognizer(target: self, action: #selector(self.navigateOtpScreen))
-        forgotPasswordLabel.addGestureRecognizer(tapGestureForgotButton)
     }
 
     // MARK: - UI Setup
@@ -41,7 +36,7 @@ class LoginViewController: BaseViewController {
     // MARK: - ViewModel Binding
     private func bindViewModel() {
         viewModel.onLoginSuccess = { [weak self] in
-                self?.navigateToHome()
+                self?.navigateToSelectedTab(selectedIndex: 0)
         }
         
         viewModel.onLoginFailure = { [weak self] error in
@@ -64,18 +59,11 @@ class LoginViewController: BaseViewController {
             navigationController?.pushViewController(vc, animated: true)
         }
     }
-
-    // MARK: - Helper
-    private func showAlert(title: String, message: String) {
-        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        present(alert, animated: true)
-    }
-
-    @objc func navigateOtpScreen() {
-        if let vc = storyboard?.instantiateViewController(withIdentifier: "OTPVerificationViewControllerID") as? OTPVerificationViewController {
-            vc.user = user
-            navigationController?.pushViewController(vc, animated: true)
+    
+    @IBAction func forgotButtonPressed(_ sender: Any) {
+        if let user = user {
+            navigateToOtpScreen(with: user)
         }
     }
+    
 }

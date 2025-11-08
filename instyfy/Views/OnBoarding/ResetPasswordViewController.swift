@@ -31,7 +31,7 @@ class ResetPasswordViewController: BaseViewController {
     }
     
     private func setupBindings() {
-        resetPasswordViewModel.onLoading = { [weak self] isLoading in
+        resetPasswordViewModel.onLoading = { isLoading in
             // You can show a loader here if you want
             if isLoading {
                 print("🔄 Updating password...")
@@ -65,20 +65,11 @@ class ResetPasswordViewController: BaseViewController {
         }
         
         guard let user = user else {
-            showAlert(message: "User data not available.")
+            self.showAlert(message: "User data not available.")
             return
         }
         
         // Call ViewModel to update password
         resetPasswordViewModel.resetPassword(for: user.mobile, newPassword: newPass1)
-    }
-    
-    // MARK: - Helpers
-    private func showAlert(title: String = "Alert", message: String) {
-        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in
-            self.dismiss(animated: true)
-        })
-        present(alert, animated: true)
     }
 }
